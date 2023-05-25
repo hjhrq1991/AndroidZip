@@ -61,6 +61,8 @@ public class Unzip {
 		if (runInThread) {
 			Thread thread = new Thread(InternalZipConstants.THREAD_NAME) {
 				public void run() {
+					//modify：huangrenqiu 修复解压过程马上回调成功的问题
+					progressMonitor.setResult(ProgressMonitor.RESULT_WORKING);
 					try {
 						initExtractAll(fileHeaders, unzipParameters, progressMonitor, outPath);
 						progressMonitor.endProgressMonitorSuccess();
