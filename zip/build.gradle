@@ -1,4 +1,38 @@
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+def group = 'com.github.hjhrq1991'
+def libraryVersion = '0.0.3'
+
+// Because the components are created only during the afterEvaluate phase, you must
+// configure your publications using the afterEvaluate() lifecycle method.
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = group
+                artifactId = 'zip'
+                version = libraryVersion
+            }
+//            // Creates a Maven publication called “debug”.
+//            debug(MavenPublication) {
+//                // Applies the component for the debug build variant.
+//                from components.debug
+//
+//                groupId = group
+//                artifactId = 'JsBridge-debug'
+//                version = libraryVersion
+//            }
+        }
+    }
+}
 
 android {
     compileSdkVersion 28
