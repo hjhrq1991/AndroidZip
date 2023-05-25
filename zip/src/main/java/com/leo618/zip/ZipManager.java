@@ -21,7 +21,8 @@ import java.util.TimerTask;
  * Created by Leo on 2018/1/16.
  */
 public final class ZipManager {
-    private ZipManager() {}
+    private ZipManager() {
+    }
 
     /**
      * 是否打印日志
@@ -30,10 +31,10 @@ public final class ZipManager {
         ZipLog.config(debug);
     }
 
-    private static final int     WHAT_START    = 100;
-    private static final int     WHAT_FINISH   = 101;
-    private static final int     WHAT_PROGRESS = 102;
-    private static       Handler mUIHandler    = new Handler(Looper.getMainLooper()) {
+    private static final int WHAT_START = 100;
+    private static final int WHAT_FINISH = 101;
+    private static final int WHAT_PROGRESS = 102;
+    private static Handler mUIHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             if (msg == null) {
@@ -49,7 +50,7 @@ public final class ZipManager {
                     ZipLog.debug("onProgress: percentDone=" + msg.arg1);
                     break;
                 case WHAT_FINISH:
-                    ((IZipCallback) msg.obj).onFinish(true);
+                    ((IZipCallback) msg.obj).onFinish(true, "");
                     ZipLog.debug("onFinish: success=true");
                     break;
             }
@@ -77,7 +78,7 @@ public final class ZipManager {
      */
     public static void zip(String targetPath, String destinationFilePath, String password, IZipCallback callback) {
         if (!Zip4jUtil.isStringNotNullAndNotEmpty(targetPath) || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFilePath)) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, "TargetPath or destinationFilePath is null or empty.");
             return;
         }
         ZipLog.debug("zip: targetPath=" + targetPath + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
@@ -101,7 +102,7 @@ public final class ZipManager {
             }
             timerMsg(callback, zipFile);
         } catch (Exception e) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("zip: Exception=" + e.getMessage());
         }
     }
@@ -116,7 +117,7 @@ public final class ZipManager {
      */
     public static void zip(ArrayList<File> list, String destinationFilePath, String password, final IZipCallback callback) {
         if (list == null || list.size() == 0 || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFilePath)) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, "List or destinationFilePath is null or empty.");
             return;
         }
         ZipLog.debug("zip: list=" + list.toString() + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
@@ -135,7 +136,7 @@ public final class ZipManager {
             zipFile.addFiles(list, parameters);
             timerMsg(callback, zipFile);
         } catch (Exception e) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("zip: Exception=" + e.getMessage());
         }
     }
@@ -172,7 +173,7 @@ public final class ZipManager {
      */
     public static void unzip(String targetZipFilePath, String destinationFolderPath, String password, final IZipCallback callback) {
         if (!Zip4jUtil.isStringNotNullAndNotEmpty(targetZipFilePath) || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFolderPath)) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, "TargetZipFilePath or destinationFolderPath is null or empty.");
             return;
         }
         ZipLog.debug("unzip: targetZipFilePath=" + targetZipFilePath + " , destinationFolderPath=" + destinationFolderPath + " , password=" + password);
@@ -185,7 +186,7 @@ public final class ZipManager {
             zipFile.extractAll(destinationFolderPath);
             timerMsg(callback, zipFile);
         } catch (Exception e) {
-            if (callback != null) callback.onFinish(false);
+            if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("unzip: Exception=" + e.getMessage());
         }
     }
@@ -195,7 +196,7 @@ public final class ZipManager {
         if (callback == null) return;
         mUIHandler.obtainMessage(WHAT_START, callback).sendToTarget();
         final ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
-        final Timer           timer           = new Timer();
+        final Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {

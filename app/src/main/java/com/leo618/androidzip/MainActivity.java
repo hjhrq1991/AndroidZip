@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFinish(boolean success) {
+            public void onFinish(boolean success, String message) {
                 loadingHide();
                 toast(success ? "成功" : "失败");
             }
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFinish(boolean success) {
+            public void onFinish(boolean success, String message) {
                 loadingHide();
                 toast(success ? "成功" : "失败");
             }
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (percent > 0) {
             mLoading.setProgress(percent);
-            mLoading.setMessage(String.valueOf(percent) + "%");
+            mLoading.setMessage(percent + "%");
         }
         if (!mLoading.isShowing()) mLoading.show();
     }

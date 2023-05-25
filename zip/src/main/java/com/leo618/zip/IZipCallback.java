@@ -21,8 +21,10 @@ public interface IZipCallback {
 
     /**
      * 完成
+     * modify：huangrenqiu 增加错误消息回调
      *
      * @param success 是否成功
+     * @param message 错误消息
      */
-    void onFinish(boolean success);
+    void onFinish(boolean success, String message);
 }
