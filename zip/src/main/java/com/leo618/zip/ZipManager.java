@@ -78,7 +78,8 @@ public final class ZipManager {
      */
     public static void zip(String targetPath, String destinationFilePath, String password, IZipCallback callback) {
         if (!Zip4jUtil.isStringNotNullAndNotEmpty(targetPath) || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFilePath)) {
-            if (callback != null) callback.onFinish(false, "TargetPath or destinationFilePath is null or empty.");
+            if (callback != null)
+                callback.onFinish(false, "TargetPath or destinationFilePath is null or empty.");
             return;
         }
         ZipLog.debug("zip: targetPath=" + targetPath + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
@@ -100,7 +101,7 @@ public final class ZipManager {
             } else {
                 zipFile.addFile(targetFile, parameters);
             }
-            timerMsg(callback, zipFile);
+            timerMsg(callback, zipFile, "zip");
         } catch (Exception e) {
             if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("zip: Exception=" + e.getMessage());
@@ -117,7 +118,8 @@ public final class ZipManager {
      */
     public static void zip(ArrayList<File> list, String destinationFilePath, String password, final IZipCallback callback) {
         if (list == null || list.size() == 0 || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFilePath)) {
-            if (callback != null) callback.onFinish(false, "List or destinationFilePath is null or empty.");
+            if (callback != null)
+                callback.onFinish(false, "List or destinationFilePath is null or empty.");
             return;
         }
         ZipLog.debug("zip: list=" + list.toString() + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
@@ -134,7 +136,7 @@ public final class ZipManager {
             ZipFile zipFile = new ZipFile(destinationFilePath);
             zipFile.setRunInThread(true);
             zipFile.addFiles(list, parameters);
-            timerMsg(callback, zipFile);
+            timerMsg(callback, zipFile, "zip");
         } catch (Exception e) {
             if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("zip: Exception=" + e.getMessage());
@@ -173,7 +175,8 @@ public final class ZipManager {
      */
     public static void unzip(String targetZipFilePath, String destinationFolderPath, String password, final IZipCallback callback) {
         if (!Zip4jUtil.isStringNotNullAndNotEmpty(targetZipFilePath) || !Zip4jUtil.isStringNotNullAndNotEmpty(destinationFolderPath)) {
-            if (callback != null) callback.onFinish(false, "TargetZipFilePath or destinationFolderPath is null or empty.");
+            if (callback != null)
+                callback.onFinish(false, "TargetZipFilePath or destinationFolderPath is null or empty.");
             return;
         }
         ZipLog.debug("unzip: targetZipFilePath=" + targetZipFilePath + " , destinationFolderPath=" + destinationFolderPath + " , password=" + password);
@@ -184,15 +187,20 @@ public final class ZipManager {
             }
             zipFile.setRunInThread(true);
             zipFile.extractAll(destinationFolderPath);
-            timerMsg(callback, zipFile);
+            timerMsg(callback, zipFile, "unzip");
         } catch (Exception e) {
             if (callback != null) callback.onFinish(false, e.getMessage());
             ZipLog.debug("unzip: Exception=" + e.getMessage());
         }
     }
 
+    private static long timeDiff = 30 * 1000L;
+    private static int count = 0;
+    private static long period = 300L;
+
     //Handler send msg
-    private static void timerMsg(final IZipCallback callback, ZipFile zipFile) {
+    private static void timerMsg(final IZipCallback callback, ZipFile zipFile, String type) {
+        count = 0;
         if (callback == null) return;
         mUIHandler.obtainMessage(WHAT_START, callback).sendToTarget();
         final ProgressMonitor progressMonitor = zipFile.getProgressMonitor();
@@ -200,6 +208,12 @@ public final class ZipManager {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if (count >= (timeDiff / period)) {
+                    this.cancel();
+                    timer.purge();
+                    throw new RuntimeException("Unable to " + type + ", please check configuration or password.");
+                }
+                count++;
                 mUIHandler.obtainMessage(WHAT_PROGRESS, progressMonitor.getPercentDone(), 0, callback).sendToTarget();
                 if (progressMonitor.getResult() == ProgressMonitor.RESULT_SUCCESS) {
                     mUIHandler.obtainMessage(WHAT_FINISH, callback).sendToTarget();
@@ -207,7 +221,7 @@ public final class ZipManager {
                     timer.purge();
                 }
             }
-        }, 0, 300);
+        }, 0, period);
     }
 
 }
