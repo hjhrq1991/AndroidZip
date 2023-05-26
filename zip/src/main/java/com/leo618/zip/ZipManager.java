@@ -1,5 +1,6 @@
 package com.leo618.zip;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -34,6 +35,7 @@ public final class ZipManager {
     private static final int WHAT_START = 100;
     private static final int WHAT_FINISH = 101;
     private static final int WHAT_PROGRESS = 102;
+    private static final int WHAT_ERROR = 103;
     private static Handler mUIHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -52,6 +54,12 @@ public final class ZipManager {
                 case WHAT_FINISH:
                     ((IZipCallback) msg.obj).onFinish(true, "");
                     ZipLog.debug("onFinish: success=true");
+                    break;
+                case WHAT_ERROR:
+                    Bundle bundle = msg.getData();
+                    String message = bundle.getString("message");
+                    ((IZipCallback) msg.obj).onFinish(false, message);
+                    ZipLog.debug("onFinish: success=false message=" + message);
                     break;
             }
         }
@@ -197,7 +205,7 @@ public final class ZipManager {
     /**
      * 超时时间
      */
-    private static long timeDiff = 30 * 1000L;
+    private static long timeDiff = 6 * 1000L;
     private static int count = 0;
     /**
      * 定时器间隔
@@ -224,9 +232,13 @@ public final class ZipManager {
             @Override
             public void run() {
                 if (count >= (timeDiff / period)) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("message", "Unable to " + type + ", please check configuration or password.");
+                    Message message = mUIHandler.obtainMessage(WHAT_ERROR, callback);
+                    message.setData(bundle);
+                    message.sendToTarget();
                     this.cancel();
                     timer.purge();
-                    throw new RuntimeException("Unable to " + type + ", please check configuration or password.");
                 }
                 count++;
                 mUIHandler.obtainMessage(WHAT_PROGRESS, progressMonitor.getPercentDone(), 0, callback).sendToTarget();
