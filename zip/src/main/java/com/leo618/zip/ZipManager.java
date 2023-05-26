@@ -194,9 +194,24 @@ public final class ZipManager {
         }
     }
 
+    /**
+     * 超时时间
+     */
     private static long timeDiff = 30 * 1000L;
     private static int count = 0;
-    private static long period = 300L;
+    /**
+     * 定时器间隔
+     */
+    private static final long period = 300L;
+
+    /**
+     * 设置超时时间
+     *
+     * @param timeout
+     */
+    public static void setTimeout(long timeout) {
+        timeDiff = timeout;
+    }
 
     //Handler send msg
     private static void timerMsg(final IZipCallback callback, ZipFile zipFile, String type) {
