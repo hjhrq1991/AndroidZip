@@ -21,6 +21,9 @@ buildscript {
 
 allprojects {
     repositories {
+        maven { url 'https://maven.aliyun.com/repository/public' } // 阿里云镜像
+        maven { url 'https://maven.aliyun.com/repository/google' } // Google镜像
+
         maven { url 'https://maven.google.com' }
         google()
         mavenCentral()
