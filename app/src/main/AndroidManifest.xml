@@ -19,12 +19,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name="com.leo618.splashpermissionsauth.SplashAuthUI"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:theme="@style/SplashPermissionsAuthThemeForSplash" />
-
     </application>
 
 </manifest>
