@@ -5,8 +5,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import net.lingala.zip4j.progress.ProgressMonitor;
 import net.lingala.zip4j.util.Zip4jUtil;
 
@@ -93,15 +97,20 @@ public final class ZipManager {
         ZipLog.debug("zip: targetPath=" + targetPath + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
         try {
             ZipParameters parameters = new ZipParameters();
-            parameters.setCompressionMethod(8);
-            parameters.setCompressionLevel(5);
+            parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            parameters.setCompressionLevel(CompressionLevel.NORMAL);
+
+            ZipFile zipFile;
             if (password.length() > 0) {
                 parameters.setEncryptFiles(true);
-                parameters.setEncryptionMethod(99);
-                parameters.setAesKeyStrength(3);
-                parameters.setPassword(password);
+                parameters.setEncryptionMethod(EncryptionMethod.AES);
+                // Below line is optional. AES 256 is used by default. You can override it to use AES 128. AES 192 is supported only for extracting.
+                parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+
+                zipFile = new ZipFile(destinationFilePath, password.toCharArray());
+            } else {
+                zipFile = new ZipFile(destinationFilePath);
             }
-            ZipFile zipFile = new ZipFile(destinationFilePath);
             zipFile.setRunInThread(true);
             File targetFile = new File(targetPath);
             if (targetFile.isDirectory()) {
@@ -133,15 +142,21 @@ public final class ZipManager {
         ZipLog.debug("zip: list=" + list.toString() + " , destinationFilePath=" + destinationFilePath + " , password=" + password);
         try {
             ZipParameters parameters = new ZipParameters();
-            parameters.setCompressionMethod(8);
-            parameters.setCompressionLevel(5);
+            parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            parameters.setCompressionLevel(CompressionLevel.NORMAL);
+
+            ZipFile zipFile;
+
             if (password.length() > 0) {
                 parameters.setEncryptFiles(true);
-                parameters.setEncryptionMethod(99);
-                parameters.setAesKeyStrength(3);
-                parameters.setPassword(password);
+                parameters.setEncryptionMethod(EncryptionMethod.AES);
+                // Below line is optional. AES 256 is used by default. You can override it to use AES 128. AES 192 is supported only for extracting.
+                parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+
+                zipFile = new ZipFile(destinationFilePath, password.toCharArray());
+            } else {
+                zipFile = new ZipFile(destinationFilePath);
             }
-            ZipFile zipFile = new ZipFile(destinationFilePath);
             zipFile.setRunInThread(true);
             zipFile.addFiles(list, parameters);
             timerMsg(callback, zipFile, "zip");
@@ -191,7 +206,7 @@ public final class ZipManager {
         try {
             ZipFile zipFile = new ZipFile(targetZipFilePath);
             if (zipFile.isEncrypted() && Zip4jUtil.isStringNotNullAndNotEmpty(password)) {
-                zipFile.setPassword(password);
+                zipFile.setPassword(password.toCharArray());
             }
             zipFile.setRunInThread(true);
             zipFile.extractAll(destinationFolderPath);
@@ -242,7 +257,7 @@ public final class ZipManager {
                 }
                 count++;
                 mUIHandler.obtainMessage(WHAT_PROGRESS, progressMonitor.getPercentDone(), 0, callback).sendToTarget();
-                if (progressMonitor.getResult() == ProgressMonitor.RESULT_SUCCESS) {
+                if (progressMonitor.getResult() == ProgressMonitor.Result.SUCCESS) {
                     mUIHandler.obtainMessage(WHAT_FINISH, callback).sendToTarget();
                     this.cancel();
                     timer.purge();
